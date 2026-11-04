@@ -1,0 +1,187 @@
+{
+  "zarr_format": 3,
+  "node_type": "group",
+  "attributes": {
+    "zarr_conventions": [
+      {
+        "uuid": "630194dc-6c04-43b2-957a-a80ebb901c42",
+        "schema_url": "https://raw.githubusercontent.com/BioinfoTongLI/bioimage-analysis-spec/refs/tags/v0.1.0/schema.json",
+        "spec_url": "https://github.com/BioinfoTongLI/bioimage-analysis-spec/blob/v0.1.0/README.md",
+        "name": "bioimage_analysis:",
+        "description": "Provenance of the bioimage analysis steps that produced or modified this node"
+      }
+    ],
+    "bioimage_analysis:steps": [
+      {
+        "name": "Image importing",
+        "software": {
+          "name": "aind-smartspim-segmentation",
+          "version": "1.0.4",
+          "uri": "https://github.com/AllenNeuralDynamics/aind-SmartSPIM-segmentation"
+        },
+        "inputs": [
+          {
+            "uri": "file:///tmp/nxf.dYBtfwmLjK/capsule/data/fused/Ex_561_Em_600.zarr"
+          }
+        ],
+        "outputs": [
+          {
+            "uri": "file:///tmp/nxf.dYBtfwmLjK/capsule/data/fused/Ex_561_Em_600.zarr"
+          }
+        ],
+        "workflow": {
+          "name": "SmartSPIM Pipeline",
+          "version": "6.0.0",
+          "uri": "https://github.com/AllenNeuralDynamics/aind-smartspim-pipeline-dispatcher"
+        },
+        "started": "2026-10-29T17:52:21.776156Z",
+        "ended": "2026-10-29T17:52:21.809566Z"
+      },
+      {
+        "name": "Image spot detection",
+        "software": {
+          "name": "aind-smartspim-segmentation",
+          "version": "1.0.4",
+          "uri": "https://github.com/AllenNeuralDynamics/aind-SmartSPIM-segmentation"
+        },
+        "parameters": {
+          "multiscale": "0",
+          "scheduler_params": {
+            "axis_pad": 16,
+            "batch_size": 1,
+            "n_workers": 0,
+            "prediction_chunksize": [128, 128, 128],
+            "target_size_mb": 3048
+          },
+          "segmentation_mask_path": null,
+          "spot_parameters": {
+            "background_percentage": 25,
+            "context_radius": 7,
+            "filt_thresh": -1,
+            "min_zyx": [3, 3, 3],
+            "radius_confidence": 0.5,
+            "raw_thresh": -1,
+            "sigma_zyx": [2, 1.8, 1.8]
+          }
+        },
+        "inputs": [
+          {
+            "uri": "file:///tmp/nxf.dYBtfwmLjK/capsule/data/fused/Ex_561_Em_600.zarr"
+          }
+        ],
+        "outputs": [
+          {
+            "uri": "file:///tmp/nxf.dYBtfwmLjK/capsule/results/cell_Ex_561_Em_600"
+          }
+        ],
+        "workflow": {
+          "name": "SmartSPIM Pipeline",
+          "version": "6.0.0",
+          "uri": "https://github.com/AllenNeuralDynamics/aind-smartspim-pipeline-dispatcher"
+        },
+        "started": "2026-10-29T17:52:27.942513Z",
+        "ended": "2026-10-29T21:08:30.159212Z"
+      },
+      {
+        "name": "Image cell classification",
+        "software": {
+          "name": "aind-smartspim-classification",
+          "version": "0.1.3",
+          "uri": "https://github.com/AllenNeuralDynamics/aind-smartspim-classification"
+        },
+        "parameters": {
+          "background_path": "/tmp/nxf.pMDGCmXviX/capsule/data/fused/Ex_639_Em_680.zarr",
+          "image_path": "/tmp/nxf.pMDGCmXviX/capsule/data/fused/Ex_561_Em_600.zarr",
+          "mask_path": "/tmp/nxf.pMDGCmXviX/capsule/data/fused/Ex_561_Em_600.zarr/3",
+          "overlap_prediction_chunksize": [0, 6, 6, 6],
+          "prediction_chunksize": [2, 128, 128, 128],
+          "smartspim_cell_config": {
+            "background_channel": "Ex_639_Em_680.zarr",
+            "channel": "Ex_561_Em_600",
+            "chunk_size": 128,
+            "input_channel": "Ex_561_Em_600.zarr",
+            "input_data": "/tmp/nxf.pMDGCmXviX/capsule/data/fused",
+            "input_scale": "0",
+            "metadata_path": "/tmp/nxf.pMDGCmXviX/capsule/results/cell_Ex_561_Em_600/metadata",
+            "model_config": {
+              "default_model": "/tmp/nxf.pMDGCmXviX/capsule/data/smartspim_production_models/model_5_01112026/model.keras",
+              "metadata": {
+                "Notes": "Updated model architecture and training sets",
+                "backbone": "ResNet",
+                "layers": 18,
+                "model_location": "s3://aind-benchmark-data/mesoscale-anatomy-cell-detection/models/model_5_01112026/model.h5",
+                "normalization": {
+                  "means": [],
+                  "range": [1, 99],
+                  "standard_deviations": [],
+                  "type": "percentile"
+                },
+                "threshold": 0.5,
+                "training_data_asset": "SmartSPIM_training_sets",
+                "training_sets": [
+                  "2026_01_09_outsource_training_set",
+                  "2025_10_20_stripe_training_set",
+                  "2025_02_01_dim_training_set",
+                  "SmartSPIM_training_sets/2024_01_22_general_training_set",
+                  "SmartSPIM_training_sets/2024_11_22_rabies_training_set"
+                ]
+              },
+              "parameters": {
+                "cube_depth": 26,
+                "cube_height": 14,
+                "cube_width": 14,
+                "downsample": 1,
+                "mask_scale": 3
+              }
+            },
+            "name": "890964_2026-10-26_13-00-43_stitched_2026-10-29_09-45-07",
+            "save_path": "/tmp/nxf.pMDGCmXviX/capsule/results/cell_Ex_561_Em_600"
+          },
+          "target_size_mb": 3048
+        },
+        "inputs": [
+          {
+            "uri": "file:///tmp/nxf.pMDGCmXviX/capsule/data/fused/Ex_561_Em_600.zarr"
+          }
+        ],
+        "outputs": [
+          {
+            "uri": "file:///tmp/nxf.pMDGCmXviX/capsule/results/cell_Ex_561_Em_600/metadata"
+          }
+        ],
+        "workflow": {
+          "name": "SmartSPIM Pipeline",
+          "version": "6.0.0",
+          "uri": "https://github.com/AllenNeuralDynamics/aind-smartspim-pipeline-dispatcher"
+        },
+        "started": "2026-10-29T22:08:03.175179Z",
+        "ended": "2026-10-30T00:18:52.959331Z"
+      },
+      {
+        "name": "Image cell quantification",
+        "software": {
+          "name": "aind-smartspim-quantification",
+          "version": "1.7.1",
+          "uri": "https://github.com/AllenNeuralDynamics/aind-smartspim-quantification"
+        },
+        "inputs": [
+          {
+            "uri": "file:///tmp/nxf.avuk8Q15Se/capsule/data/fused/Ex_561_Em_600.zarr/0"
+          }
+        ],
+        "outputs": [
+          {
+            "uri": "file:///tmp/nxf.avuk8Q15Se/capsule/results"
+          }
+        ],
+        "workflow": {
+          "name": "SmartSPIM Pipeline",
+          "version": "6.0.0",
+          "uri": "https://github.com/AllenNeuralDynamics/aind-smartspim-pipeline-dispatcher"
+        },
+        "started": "2026-10-30T01:04:44.777568Z",
+        "ended": "2026-10-30T01:23:26.579285Z"
+      }
+    ]
+  }
+}

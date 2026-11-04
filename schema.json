@@ -1,21 +1,40 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Template Convention",
-  "description": "Schema for Template Zarr convention, supporting both key-prefixed and nested namespace patterns",
-  "type": "object",
-  "properties": {
-    "zarr_format": {
-      "type": "integer",
-      "description": "Zarr format version"
+  "$id": "https://raw.githubusercontent.com/BioinfoTongLI/bioimage-analysis-spec/refs/tags/v0.1.0/schema.json",
+  "title": "Bioimage Analysis Provenance Convention",
+  "description": "Schema for the bioimage_analysis: Zarr convention, which records the analysis steps (software, parameters, inputs, environment) that produced or modified a Zarr node. Validates either a Zarr v3 node metadata document (zarr.json) or a bare attributes object (e.g. a Zarr v2 .zattrs file); use #/$defs/attributes to validate attributes only.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/zarrV3Node"
     },
-    "node_type": {
-      "type": "string",
-      "enum": ["array", "group"],
-      "description": "Type of Zarr node"
+    {
+      "$ref": "#/$defs/attributes"
+    }
+  ],
+  "$defs": {
+    "zarrV3Node": {
+      "type": "object",
+      "description": "A Zarr v3 node metadata document (zarr.json)",
+      "properties": {
+        "zarr_format": {
+          "type": "integer",
+          "description": "Zarr format version"
+        },
+        "node_type": {
+          "type": "string",
+          "enum": ["array", "group"],
+          "description": "Type of Zarr node"
+        },
+        "attributes": {
+          "$ref": "#/$defs/attributes"
+        }
+      },
+      "required": ["zarr_format", "node_type", "attributes"],
+      "additionalProperties": true
     },
     "attributes": {
       "type": "object",
-      "description": "Zarr attributes containing convention metadata and properties",
+      "description": "Zarr attributes using the bioimage_analysis: convention (key-prefixed pattern). For Zarr v2 this is the content of .zattrs.",
       "properties": {
         "zarr_conventions": {
           "type": "array",
@@ -23,48 +42,46 @@
           "contains": {
             "$ref": "#/$defs/conventionMetadata"
           }
+        },
+        "bioimage_analysis:steps": {
+          "type": "array",
+          "description": "REQUIRED. Analysis steps that created or modified this node, in execution order.",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/step"
+          }
         }
       },
-      "required": ["zarr_conventions"],
-      "oneOf": [
-        {
-          "$ref": "#/$defs/keyPrefixedAttributes"
-        },
-        {
-          "$ref": "#/$defs/nestedAttributes"
-        }
-      ]
-    }
-  },
-  "required": ["zarr_format", "node_type", "attributes"],
-  "additionalProperties": true,
-  "$defs": {
+      "required": ["zarr_conventions", "bioimage_analysis:steps"],
+      "additionalProperties": true
+    },
     "conventionMetadata": {
       "type": "object",
-      "description": "Template convention metadata object for use in zarr_conventions array",
+      "description": "Convention metadata object for use in the zarr_conventions array",
       "properties": {
         "schema_url": {
           "type": "string",
-          "const": "https://raw.githubusercontent.com/zarr-conventions/template/refs/tags/v1/schema.json",
+          "const": "https://raw.githubusercontent.com/BioinfoTongLI/bioimage-analysis-spec/refs/tags/v0.1.0/schema.json",
           "description": "URL to the JSON Schema definition for this convention"
         },
         "spec_url": {
           "type": "string",
-          "const": "https://github.com/zarr-conventions/template/blob/v1/README.md",
+          "const": "https://github.com/BioinfoTongLI/bioimage-analysis-spec/blob/v0.1.0/README.md",
           "description": "URL to the full specification document"
         },
         "uuid": {
           "type": "string",
-          "const": "00000000-0000-0000-0000-000000000000",
+          "const": "630194dc-6c04-43b2-957a-a80ebb901c42",
           "description": "UUID that permanently identifies this convention"
         },
         "name": {
           "type": "string",
-          "description": "Human-readable name of the convention. Should be 'template:' for key-prefixed pattern or 'template' for nested pattern"
+          "const": "bioimage_analysis:",
+          "description": "Human-readable name of the convention, matching its namespace prefix"
         },
         "description": {
           "type": "string",
-          "const": "Template convention for demonstrating Zarr convention metadata structure",
+          "const": "Provenance of the bioimage analysis steps that produced or modified this node",
           "description": "Brief description of the convention's purpose and usage"
         }
       },
@@ -81,82 +98,183 @@
       ],
       "additionalProperties": false
     },
-    "conventionProperties": {
+    "step": {
       "type": "object",
-      "description": "Template convention properties",
+      "description": "One execution of one analysis step (a conversion, a processing step, a segmentation, a measurement, ...)",
       "properties": {
-        "new_field": {
+        "software": {
+          "$ref": "#/$defs/software",
+          "description": "REQUIRED. The software that performed the step."
+        },
+        "name": {
           "type": "string",
-          "description": "REQUIRED. Describe the required field..."
+          "minLength": 1,
+          "description": "What the step did, e.g. 'Image conversion' or 'Threshold Segmentation'."
         },
-        "xyz": {
-          "$ref": "#/$defs/xyzObject"
-        },
-        "another_one": {
-          "type": "array",
-          "description": "Array of numeric values",
-          "items": {
-            "type": "number"
-          }
-        }
-      },
-      "required": ["new_field"],
-      "additionalProperties": false
-    },
-    "xyzObject": {
-      "type": "object",
-      "description": "XYZ Object containing x, y, z coordinates",
-      "properties": {
-        "x": {
-          "type": "number",
-          "description": "REQUIRED. X coordinate value"
-        },
-        "y": {
-          "type": "number",
-          "description": "REQUIRED. Y coordinate value"
-        },
-        "z": {
-          "type": "number",
-          "description": "REQUIRED. Z coordinate value"
-        }
-      },
-      "required": ["x", "y", "z"],
-      "additionalProperties": false
-    },
-    "keyPrefixedAttributes": {
-      "type": "object",
-      "description": "Template convention using key-prefixed pattern (e.g., template:new_field)",
-      "properties": {
-        "zarr_conventions": true,
-        "template:new_field": {
+        "id": {
           "type": "string",
-          "description": "REQUIRED. Describe the required field..."
+          "minLength": 1,
+          "description": "Identifier of this execution, e.g. a UUID or a workflow engine task id. Unique within the steps array."
         },
-        "template:xyz": {
-          "$ref": "#/$defs/xyzObject"
+        "description": {
+          "type": "string",
+          "description": "Free-text notes about the step."
         },
-        "template:another_one": {
+        "parameters": {
+          "type": "object",
+          "description": "Parameters the software ran with, ideally after defaults were applied. Free-form.",
+          "additionalProperties": true
+        },
+        "inputs": {
           "type": "array",
-          "description": "Array of numeric values",
+          "description": "Data the step read.",
           "items": {
-            "type": "number"
+            "$ref": "#/$defs/dataReference"
           }
+        },
+        "outputs": {
+          "type": "array",
+          "description": "Data the step wrote, if not only this node.",
+          "items": {
+            "$ref": "#/$defs/dataReference"
+          }
+        },
+        "container": {
+          "$ref": "#/$defs/container"
+        },
+        "workflow": {
+          "$ref": "#/$defs/workflow"
+        },
+        "started": {
+          "$ref": "#/$defs/dateTime",
+          "description": "When the step started."
+        },
+        "ended": {
+          "$ref": "#/$defs/dateTime",
+          "description": "When the step ended."
         }
       },
-      "required": ["template:new_field"],
+      "required": ["software"],
       "additionalProperties": true
     },
-    "nestedAttributes": {
+    "software": {
       "type": "object",
-      "description": "Template convention using nested pattern (single 'template' key)",
+      "description": "A piece of software identified by name and version",
       "properties": {
-        "zarr_conventions": true,
-        "template": {
-          "$ref": "#/$defs/conventionProperties"
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "REQUIRED. Name of the software, package or tool."
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "REQUIRED. Released version (e.g. '2.1.0'); use the commit if there is no release."
+        },
+        "uri": {
+          "type": "string",
+          "description": "Where the software can be found, e.g. its repository or package page."
+        },
+        "commit": {
+          "type": "string",
+          "description": "Version-control commit of the software that was run."
         }
       },
-      "required": ["template"],
+      "required": ["name", "version"],
       "additionalProperties": true
+    },
+    "workflow": {
+      "type": "object",
+      "description": "The workflow (pipeline) run the step was part of",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "REQUIRED. Name of the workflow."
+        },
+        "version": {
+          "type": "string",
+          "description": "Version of the workflow."
+        },
+        "uri": {
+          "type": "string",
+          "description": "Where the workflow source can be found."
+        },
+        "commit": {
+          "type": "string",
+          "description": "Version-control commit of the workflow source."
+        }
+      },
+      "required": ["name"],
+      "additionalProperties": true
+    },
+    "container": {
+      "type": "object",
+      "description": "Container image the step ran in",
+      "properties": {
+        "image": {
+          "type": "string",
+          "minLength": 1,
+          "description": "REQUIRED. Image reference, e.g. quay.io/org/image:tag."
+        },
+        "engine": {
+          "type": "string",
+          "description": "Container engine, e.g. docker, singularity, apptainer, podman."
+        },
+        "digest": {
+          "$ref": "#/$defs/checksum",
+          "description": "Content digest of the image, e.g. sha256:<hex>."
+        }
+      },
+      "required": ["image"],
+      "additionalProperties": true
+    },
+    "dataReference": {
+      "type": "object",
+      "description": "Reference to data read or written by a step. At least one of path, uri or id is required.",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path of a node relative to the root of this Zarr hierarchy, e.g. 'B/03/0'."
+        },
+        "uri": {
+          "type": "string",
+          "description": "URI of data outside this hierarchy."
+        },
+        "id": {
+          "type": "string",
+          "description": "Identifier of the data in a catalogue or archive, e.g. a UUID or accession."
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name of the data."
+        },
+        "checksum": {
+          "$ref": "#/$defs/checksum"
+        }
+      },
+      "anyOf": [
+        {
+          "required": ["path"]
+        },
+        {
+          "required": ["uri"]
+        },
+        {
+          "required": ["id"]
+        }
+      ],
+      "additionalProperties": true
+    },
+    "checksum": {
+      "type": "string",
+      "description": "Checksum as <algorithm>:<lowercase hex digest>, e.g. sha256:9f86d0...",
+      "pattern": "^[a-z0-9-]+:[0-9a-f]+$"
+    },
+    "dateTime": {
+      "type": "string",
+      "description": "ISO 8601 date-time with time zone, e.g. 2026-11-04T11:55:00+01:00",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
     }
   }
 }

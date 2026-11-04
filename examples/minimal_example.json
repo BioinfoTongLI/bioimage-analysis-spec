@@ -1,16 +1,23 @@
 {
   "zarr_format": 3,
-  "node_type": "array",
+  "node_type": "group",
   "attributes": {
     "zarr_conventions": [
       {
-        "schema_url": "https://raw.githubusercontent.com/zarr-conventions/template/refs/tags/v1/schema.json",
-        "spec_url": "https://github.com/zarr-conventions/template/blob/v1/README.md",
-        "uuid": "00000000-0000-0000-0000-000000000000",
-        "name": "template:",
-        "description": "Template convention for demonstrating Zarr convention metadata structure"
+        "uuid": "630194dc-6c04-43b2-957a-a80ebb901c42",
+        "schema_url": "https://raw.githubusercontent.com/BioinfoTongLI/bioimage-analysis-spec/refs/tags/v0.1.0/schema.json",
+        "spec_url": "https://github.com/BioinfoTongLI/bioimage-analysis-spec/blob/v0.1.0/README.md",
+        "name": "bioimage_analysis:",
+        "description": "Provenance of the bioimage analysis steps that produced or modified this node"
       }
     ],
-    "template:new_field": "minimal example"
+    "bioimage_analysis:steps": [
+      {
+        "software": {
+          "name": "bioformats2raw",
+          "version": "0.9.4"
+        }
+      }
+    ]
   }
 }
